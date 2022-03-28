@@ -1,0 +1,14 @@
+{
+  "name": "apollo-gateway",
+  "version": "1.0.0",
+  "description": "WFM Orchestration Gateway",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@apollo/gateway": "^0.21.4",
+    "apollo-server": "^2.19.0",
+    "graphql": "^15.4.0"
+  }
+}
