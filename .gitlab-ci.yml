@@ -2,49 +2,36 @@ image: node:lts-slim
 
 stages:
   - package
+  - release
 
-.dockerize-template:
+dockerize-graph-service:
   image: docker:stable
-  stage: package
-  cache: {}
   services:
     - docker:stable-dind
+  stage: package
   variables:
     DOCKER_FILE: ./Dockerfile
-    DOCKER_IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
+    DOCKER_IMAGE_PATH: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
   script:
-    - echo "$CI_REGISTRY_PASSWORD" | docker login $CI_REGISTRY --username "$CI_REGISTRY_USER" --password-stdin
-    - docker build --pull -t "$DOCKER_IMAGE_TAG" -f $DOCKER_FILE .
-    - docker push "$DOCKER_IMAGE_TAG"
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
+    - docker build --pull -t "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA" -f $DOCKER_FILE .
+    - docker push "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA"
 
-dockerize:latest:
-  extends: .dockerize-template
+release-latest:
+  extends: dockerize-graph-service
+  stage: release
+  cache: {}
   variables:
-    DOCKER_IMAGE_TAG: $CI_REGISTRY_IMAGE:latest
+    GIT_STRATEGY: none
+    TESTED_DOCKER: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA #r.am.hilti.com/wfm-orchestration/(branch|tag):ak3243n3nj2
+    LATEST_DOCKER: $CI_REGISTRY_IMAGE:latest #r.am.hilti.com/wfm-orchestration:latest
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+    - docker pull "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA"
+    - docker tag "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA" "$TESTED_DOCKER"
+    - docker push "$TESTED_DOCKER"
+  script:
+    - docker tag "$TESTED_DOCKER" "$LATEST_DOCKER"
+    - docker push "$LATEST_DOCKER"
   rules:
-    - if: $CI_MERGE_REQUEST_ID # Avoid special merge request pipeline
-      when: never
-    - if: $CI_COMMIT_TAG # Avoid special tag pipeline
-      when: never
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Running rule
-      when: on_success
-
-dockerize:branch:
-  extends: .dockerize-template
-  rules:
-    - if: $CI_MERGE_REQUEST_ID # Avoid special merge request pipeline
-      when: never
-    - if: $CI_COMMIT_TAG # Avoid special tag pipeline
-      when: never
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH # Running rule
-      when: on_success
-
-dockerize:tag:
-  extends: dockerize:latest
-  variables:
-    DOCKER_IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_TAG
-  rules:
-    - if: $CI_MERGE_REQUEST_ID # Avoid special merge request pipeline
-      when: never
-    - if: $CI_COMMIT_TAG # Running rule
-      when: on_success
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
