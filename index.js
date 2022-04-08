@@ -6,7 +6,7 @@ const gateway = new ApolloGateway({
     serviceList: [
         // { name: 'profile', url: process.env.CCMS_GRAPHQL_ENDPOINT },
         { name: 'timeAndAttendance',
-            url: 'https://' + process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
+            url: 'http://' + process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
     ]
 });
 
