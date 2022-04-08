@@ -5,7 +5,7 @@ const process = require('process');
 const gateway = new ApolloGateway({
     serviceList: [
         // { name: 'profile', url: process.env.CCMS_GRAPHQL_ENDPOINT },
-        { name: 'timeAndAttendance', url: process.env.WFM_TNA_GRAPHQL_ENDPOINT },
+        { name: 'timeAndAttendance', url: process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
     ]
 });
 
