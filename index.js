@@ -1,5 +1,6 @@
-const { ApolloServer, gql } = require('apollo-server');
+const { ApolloServer } = require('apollo-server-express');
 const {ApolloGateway} = require('@apollo/gateway')
+const express = require("express");
 const process = require('process');
 
 const gateway = new ApolloGateway({
@@ -14,9 +15,10 @@ const gateway = new ApolloGateway({
 });
 
 const server = new ApolloServer({ gateway, subscriptions:false, tracing:true });
-server.listen().then(({ url }) => {
-    console.log(`🚀 Server ready at ${url}`);
-    console.log(
-      `Try your health check at: ${url}.well-known/apollo/server-health`,
-    );
-  });
+const app = express();
+const port = process.env.PORT || 4000;
+
+server.applyMiddleware({ app, path: '/v1/graphql' })
+app.listen(port, () =>
+    console.log(`🚀 Gateway Service ready at port ` + port)
+);
