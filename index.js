@@ -7,7 +7,10 @@ const gateway = new ApolloGateway({
         // { name: 'profile', url: process.env.CCMS_GRAPHQL_ENDPOINT },
         { name: 'timeAndAttendance',
             url: 'http://' + process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
-    ]
+    ],
+    introspectionHeaders: {
+        introspection: true
+    }
 });
 
 const server = new ApolloServer({ gateway, subscriptions:false, tracing:true });
