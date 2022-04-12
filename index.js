@@ -9,7 +9,7 @@ const gateway = new ApolloGateway({
             url: 'http://' + process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
     ],
     introspectionHeaders: {
-        introspection: true
+        introspection: 'true'
     }
 });
 
