@@ -7,12 +7,12 @@ ENV TIME_AND_ATTENDANCE_BASE_URI="env_missing-time_and_attendance_base_uri"
 
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json", "index.js", "./"]
+COPY ["package.json", "yarn.lock", "index.js", "./"]
 
 RUN apt-get update && \
     apt-get --no-install-recommends upgrade -y && \
     rm -rf /var/lib/apt/lists/* && \
-    npm install --production
+    yarn install --production
 
 EXPOSE $PORT
 
