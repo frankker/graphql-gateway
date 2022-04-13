@@ -1,5 +1,5 @@
 const { ApolloServer } = require('apollo-server-express');
-const {ApolloGateway} = require('@apollo/gateway')
+const {ApolloGateway, RemoteGraphQLDataSource} = require('@apollo/gateway')
 const express = require("express");
 const process = require('process');
 
@@ -9,12 +9,29 @@ const gateway = new ApolloGateway({
         { name: 'timeAndAttendance',
             url: 'http://' + process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
     ],
+    buildService({ name, url }) {
+        return new RemoteGraphQLDataSource({
+            url,
+            willSendRequest({ request, context }) {
+                request.http?.headers.set('Authorization', context.token);
+            },
+        });
+    },
     introspectionHeaders: {
         introspection: 'true'
     }
 });
 
-const server = new ApolloServer({ gateway, subscriptions:false, tracing:true });
+const server = new ApolloServer({
+    gateway,
+    subscriptions:false,
+    tracing:true,
+    context: ({ req }) => {
+        const token = req.headers.authorization;
+        return { token };
+    },
+});
+
 const app = express();
 const port = process.env.PORT || 4000;
 
