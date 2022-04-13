@@ -1,14 +1,20 @@
 const { ApolloServer } = require('apollo-server-express');
-const {ApolloGateway, RemoteGraphQLDataSource} = require('@apollo/gateway')
+const {ApolloGateway, IntrospectAndCompose, RemoteGraphQLDataSource} = require('@apollo/gateway')
 const express = require("express");
 const process = require('process');
 
 const gateway = new ApolloGateway({
-    serviceList: [
-        // { name: 'profile', url: process.env.CCMS_GRAPHQL_ENDPOINT },
-        { name: 'timeAndAttendance',
-            url: 'http://' + process.env.TIME_AND_ATTENDANCE_BASE_URI + '/v1/graphql' },
-    ],
+    supergraphSdl: new IntrospectAndCompose({
+        subgraphs: [
+            {
+                name: "timeAndAttendance",
+                url: "http://" + process.env.TIME_AND_ATTENDANCE_BASE_URI + "/v1/graphql"
+            }
+        ],
+        introspectionHeaders: {
+            introspection: 'true'
+        }
+    }),
     buildService({ name, url }) {
         return new RemoteGraphQLDataSource({
             url,
@@ -18,9 +24,6 @@ const gateway = new ApolloGateway({
                 request.http?.headers.set('hc-origincontactid', context.originContactId);
             },
         });
-    },
-    introspectionHeaders: {
-        introspection: 'true'
     }
 });
 
