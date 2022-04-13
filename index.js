@@ -13,7 +13,9 @@ const gateway = new ApolloGateway({
         return new RemoteGraphQLDataSource({
             url,
             willSendRequest({ request, context }) {
-                request.http?.headers.set('Authorization', context.token);
+                request.http?.headers.set('hc-country', context.country);
+                request.http?.headers.set('hc-origincustomerid', context.originCustomerId);
+                request.http?.headers.set('hc-origincontactid', context.originContactId);
             },
         });
     },
@@ -27,8 +29,10 @@ const server = new ApolloServer({
     subscriptions:false,
     tracing:true,
     context: ({ req }) => {
-        const token = req.headers.authorization;
-        return { token };
+        const country = req.headers['hc-country'];
+        const originCustomerId = req.headers['hc-origincustomerid'];
+        const originContactId = req.headers['hc-origincontactid'];
+        return { country, originCustomerId, originContactId };
     },
 });
 
