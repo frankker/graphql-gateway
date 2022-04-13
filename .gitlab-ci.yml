@@ -1,37 +1,26 @@
-image: node:lts-slim
+---
+# Reference: https://docs.gitlab.com/ee/ci/yaml/README.html
+include:
+  - template: Security/Container-Scanning.gitlab-ci.yml
+  - local: .gitlab/package.gitlab-ci.yml
 
 stages:
+  - test
   - package
-  - release
+  - security
 
-dockerize-graph-service:
-  image: docker:stable
-  services:
-    - docker:stable-dind
-  stage: package
+variables:
+  CS_MAJOR_VERSION: 4 # remove after upgrade to GitLab >= 14
+# ----------------------------------------------------------------------
+# security
+# ----------------------------------------------------------------------
+container_scanning_new: # rename to container_scanning after migration to GitLab >= 14
+  stage: security
   variables:
-    DOCKER_FILE: ./Dockerfile
-    DOCKER_IMAGE_PATH: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG
-  script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_JOB_TOKEN" "$CI_REGISTRY"
-    - docker build --pull -t "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA" -f $DOCKER_FILE .
-    - docker push "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA"
-
-release-latest:
-  extends: dockerize-graph-service
-  stage: release
-  cache: {}
-  variables:
-    GIT_STRATEGY: none
-    TESTED_DOCKER: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA #r.am.hilti.com/wfm-orchestration/(branch|tag):ak3243n3nj2
-    LATEST_DOCKER: $CI_REGISTRY_IMAGE:latest #r.am.hilti.com/wfm-orchestration:latest
+    CS_DEFAULT_BRANCH_IMAGE: $CI_REGISTRY_IMAGE:latest
+    DOCKER_IMAGE: $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_SLUG
   before_script:
-    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
-    - docker pull "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA"
-    - docker tag "$DOCKER_IMAGE_PATH:untested-$CI_COMMIT_SHA" "$TESTED_DOCKER"
-    - docker push "$TESTED_DOCKER"
-  script:
-    - docker tag "$TESTED_DOCKER" "$LATEST_DOCKER"
-    - docker push "$LATEST_DOCKER"
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - |
+      if [ "$CI_COMMIT_BRANCH" == "$CI_DEFAULT_BRANCH" ]; then
+        export DOCKER_IMAGE="$CI_REGISTRY_IMAGE:latest"
+      fi
