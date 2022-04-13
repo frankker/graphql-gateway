@@ -1,12 +1,14 @@
 FROM node:lts-slim
-ENV NODE_ENV=production
+
+ENV PORT=4000
+ENV TIME_AND_ATTENDANCE_BASE_URI="localhost"
 
 WORKDIR /app
 
-COPY ["package.json", "package-lock.json*", "./"]
+COPY ["package.json", "package-lock.json", "index.js", "./"]
 
 RUN npm install --production
 
-COPY . .
+EXPOSE $PORT
 
 CMD [ "node", "index.js" ]
