@@ -1,11 +1,15 @@
-## Workforce Management Graph Gateway Service
+# WFM Graph Gateway
 
-#### Refer to the technical document at https://confluence.hilti.com/display/BUTSWM/02+-+Backend+Architecture to know more about the architecture details.
+## Technical document
 
-### Required Environment Variables
+Please find the [architecture overview](https://confluence.hilti.com/display/BUTSWM/02+-+Backend+Architecture) on Hilti confluence.
+### Environment Variables
 
-Environment variables listed below must be specified to boot run the application.
-You can use the values illustrated or change them according to your use case.
+To run the docker image we have to set following environment variables. Please
+note, the default port must be changed to `8080` to support our OnTrackOperator
+today.
 
-- WFM_TNA_GRAPHQL_ENDPOINT=https://hc-apigw-d.hilti.com/ts/workforce-dev/tna/v1/graphql;
-- CCMS_GRAPHQL_ENDPOINT=https://hc-apigw-d.hilti.com/ts/workforce-dev/graph-hc/v1/graphql;
+    docker run --rm -it \
+        -e WFM_TNA_GRAPHQL_ENDPOINT=https://hc-apigw-d.hilti.com/ts/workforce-dev/tna/v1/graphql \
+        -e CCMS_GRAPHQL_ENDPOINT=https://hc-apigw-d.hilti.com/ts/workforce-dev/graph-hc/v1/graphql \
+        registry.asmgmt.hilti.com/buts/wfm/wfm-orchestration:latest
