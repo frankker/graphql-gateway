@@ -1,6 +1,6 @@
 FROM node:lts-slim
 
-ENV PORT=4000
+ENV PORT=8080
 ENV TIME_AND_ATTENDANCE_BASE_URI="localhost"
 
 WORKDIR /app
